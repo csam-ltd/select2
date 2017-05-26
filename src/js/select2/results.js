@@ -41,6 +41,8 @@ define([
       ' class="select2-results__option"></li>'
     );
 
+    var message = this.options.get('translations').get(params.message);
+
     /**
      * JB
      */
