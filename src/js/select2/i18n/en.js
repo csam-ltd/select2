@@ -39,6 +39,10 @@ define(function () {
     },
     searching: function () {
       return 'Searching…';
+    },
+    //JB New entry for the no match found functionality
+    noMatchFound : function () {
+      return 'This item does not current exist, click here to add it';
     }
   };
 });

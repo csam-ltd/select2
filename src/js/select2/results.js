@@ -41,13 +41,32 @@ define([
       ' class="select2-results__option"></li>'
     );
 
-    var message = this.options.get('translations').get(params.message);
+    /**
+     * JB
+     */
+    //Get the parameters from the function
+    var parameters = params.params;
 
-    $message.append(
-      escapeMarkup(
-        message(params.args)
-      )
-    );
+    //JDisplay this as html
+    if (parameters && parameters.displayHtml !== undefined) {
+
+      //Create a new a link element
+      var html = document.createElement('a');
+      html.innerText = escapeMarkup(message(params.args));
+      //If there is a an on click function add it to an event listener
+      if (parameters.onClickFunction) html.addEventListener("click", parameters.onClickFunction);
+
+      //Allows the addition of html elements
+      $message.append(html);
+
+    } else {
+      //This is old standard message
+      $message.append(
+        escapeMarkup(
+          message(params.args)
+        )
+      );
+    }
 
     $message[0].className += ' select2-results__message';
 
