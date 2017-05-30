@@ -120,7 +120,7 @@ define([
     } else {
       this.listeners[event] = [callback];
     }
-  };
+  }; 
 
   Observable.prototype.trigger = function (event) {
     var slice = Array.prototype.slice;
@@ -271,6 +271,41 @@ define([
 
     $element.append($nodes);
   };
+
+  //JB
+  Utils.preventMultipleInput = function (self, evt) {
+
+    //if the no match functionality has been activated and the system on single mode
+    if (self.options.options.noMatchFound === true && self.options.options.multipleOrg === false) {
+      //Get all the selected tags
+      var selectedElements = self.$selection;
+
+      //if selectedElements is undefined then we need to look at the vale
+      if (!selectedElements) {
+        //If there is no value then nothing has been chosen and we can safely open the window
+        var val = self.$element[0].value;
+        if (val && val.length) {
+          return false;
+        }
+        return true;
+      }
+
+      //If the user has selected at least one element
+      if (selectedElements.length && selectedElements[0].textContent.length) {
+        //If there is no event we just need to close the window
+        if (!evt) {
+          self.trigger('close', {});
+          return false;
+        }
+
+        //Stop select2 from recording the key press
+        evt.preventDefault();
+        evt.stopPropagation();
+        return false;
+      }
+    }
+    return true;
+  }
 
   return Utils;
 });

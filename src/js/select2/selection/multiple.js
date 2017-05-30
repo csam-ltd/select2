@@ -27,6 +27,10 @@ define([
     MultipleSelection.__super__.bind.apply(this, arguments);
 
     this.$selection.on('click', function (evt) {
+      //Jb
+      //If we are in single input mode this event might need to be blocked
+      if (!Utils.preventMultipleInput(self, evt)) return;
+
       self.trigger('toggle', {
         originalEvent: evt
       });

@@ -55,6 +55,13 @@ define([
       //Create a new a link element
       var html = document.createElement('a');
       html.innerText = escapeMarkup(message(params.args));
+
+      //Add a class so that it can be identified
+      $(html).addClass("select2-NotFound");
+      //Add the current input text from the field into the data so that we have access to it later
+      if (this.lastParams && this.lastParams.term)
+          $(html).data("InputText", this.lastParams.term);
+
       //If there is a an on click function add it to an event listener
       if (parameters.onClickFunction) html.addEventListener("click", parameters.onClickFunction);
 

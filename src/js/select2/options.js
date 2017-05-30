@@ -55,6 +55,16 @@ define([
     $e.prop('disabled', this.options.disabled);
     $e.prop('multiple', this.options.multiple);
 
+    //JB
+    //Override the multiple setting if no match found, so that users can still adding things into the db
+    if (this.options.noMatchFound) {
+      //Add a property for the original value
+      this.options.multipleOrg = this.options.multiple;
+      //Set the options registry and property to true
+      this.options.multiple = true;
+      $e.prop('multiple', true);
+    }
+
     if ($e.data('select2Tags')) {
       if (this.options.debug && window.console && console.warn) {
         console.warn(

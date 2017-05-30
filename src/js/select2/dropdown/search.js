@@ -29,8 +29,10 @@ define([
     decorated.call(this, container, $container);
 
     this.$search.on('keydown', function (evt) {
+      //Jb
+      //If we are in single input mode this event might need to be blocked
+      if (!Utils.preventMultipleInput(self, evt)) return;
       self.trigger('keypress', evt);
-
       self._keyUpPrevented = evt.isDefaultPrevented();
     });
 
