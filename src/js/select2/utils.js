@@ -272,39 +272,43 @@ define([
     $element.append($nodes);
   };
 
+  /**
+  * This closes any message windows which may be open at a given time
+  * @returns {} 
+  */
+  Utils.closeDialogueMessage = function (self) {
+    self.trigger('close', {});
+  }
+
   //JB
-  Utils.preventMultipleInput = function (self, evt) {
+  /**
+   * Checks to see if the system can allow more than one selection
+   * @param {} self 
+   * @returns {} 
+   */
+  Utils.checkSingleSelectionOnly = function (self) {
 
-    //if the no match functionality has been activated and the system on single mode
-    if (self.options.options.noMatchFound === true && self.options.options.multipleOrg === false) {
-      //Get all the selected tags
-      var selectedElements = self.$selection;
-
-      //if selectedElements is undefined then we need to look at the vale
-      if (!selectedElements) {
-        //If there is no value then nothing has been chosen and we can safely open the window
-        var val = self.$element[0].value;
-        if (val && val.length) {
-          return false;
-        }
-        return true;
-      }
-
-      //If the user has selected at least one element
-      if (selectedElements.length && selectedElements[0].textContent.length) {
-        //If there is no event we just need to close the window
-        if (!evt) {
-          self.trigger('close', {});
-          return false;
-        }
-
-        //Stop select2 from recording the key press
-        evt.preventDefault();
-        evt.stopPropagation();
-        return false;
-      }
+    //The no match found functionality must be activated
+    if (!self.options.options.noMatchFound ||
+      //If the system was not meant to be in single selection mode
+      self.options.options.multipleOrg === true) {
+      //Multiselection mode selection mode 
+      self.$search.prop('disabled', false);
+      return false;
     }
-    return true;
+
+    //Check to see how many elements have been selected
+    var selectedElements = $("#" + self.$element[0].id).select2("data");
+    //If there is at least one selected item then we have to stop events
+    if (selectedElements.length > 0) {
+      //Single selection mode 
+      self.$search.prop('disabled', true);
+      return true;
+    }
+    //Multiselection mode selection mode 
+    self.$search.prop('disabled', false);
+    return false;
+
   }
 
   return Utils;

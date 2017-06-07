@@ -16,9 +16,7 @@ define([
     decorated.call(this, container, $container);
 
     container.on('open', function () {
-      //jb
-      //If we are in single input mode this event might need to be blocked
-      if (!Utils.preventMultipleInput(self)) return;
+
       self._showDropdown();
       self._attachPositioningHandler(container);
 

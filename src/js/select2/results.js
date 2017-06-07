@@ -58,12 +58,19 @@ define([
 
       //Add a class so that it can be identified
       $(html).addClass("select2-NotFound");
+
+      var searchBoxText = this.data.container.selection.$searchContainer["0"].children["0"].value;
+
       //Add the current input text from the field into the data so that we have access to it later
-      if (this.lastParams && this.lastParams.term)
-          $(html).data("InputText", this.lastParams.term);
+      if (searchBoxText && searchBoxText.length)
+        $(html).data("InputText", searchBoxText);
+
+      var selectorId = this.$element;
 
       //If there is a an on click function add it to an event listener
-      if (parameters.onClickFunction) html.addEventListener("click", parameters.onClickFunction);
+      if (parameters.onClickFunction) html.addEventListener("click", function () {
+        parameters.onClickFunction(selectorId[0].id);
+      });
 
       //Allows the addition of html elements
       $message.append(html);
@@ -462,6 +469,17 @@ define([
       var $this = $(this);
 
       var data = $this.data('data');
+
+      //JB if it is single we want to remove the old value first
+      if (self.options.options.noMatchFound && !self.options.options.multipleOrg) {
+
+        //Unselect all the current items first
+        self.trigger('unselectAll',
+          {
+            originalEvent: evt,
+            data: data
+          });
+      }
 
       if ($this.attr('aria-selected') === 'true') {
         if (self.options.get('multiple')) {

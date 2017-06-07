@@ -70,9 +70,6 @@ define([
     this.$selection.on('keydown', '.select2-search--inline', function (evt) {
       evt.stopPropagation();
 
-      //JB if the no match functionality has been activated and the system on single mode
-      if (!Utils.preventMultipleInput(self, evt)) return;
-
       self.trigger('keypress', evt);
 
       self._keyUpPrevented = evt.isDefaultPrevented();
