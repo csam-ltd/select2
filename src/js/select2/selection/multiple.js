@@ -45,12 +45,12 @@ define([
       var singleSelection = Utils.checkSingleSelectionOnly(self);
 
       // User focuses on the container
-      self.options.options.eventOnFocus(evt, componentId);
+      if (self.options.options.eventOnFocus) self.options.options.eventOnFocus(evt, componentId);
     });
 
     this.$search.on('blur', function (evt) {
       // User exits the container
-      self.options.options.eventOnBlur(evt, componentId);
+      if (self.options.options.eventOnBlur) self.options.options.eventOnBlur(evt, componentId);
     });
 
     this.$selection.on(
@@ -125,15 +125,17 @@ define([
 
     for (var d = 0; d < data.length; d++) {
       var selection = data[d];
-
-      //JB If the user wanted the system to be in multiple mode
       var $selection;
-      if (self.options.options.multipleOrg) {
-        //Use the original container with tagging
-        $selection = this.selectionContainer();
-      } else {
+
+      //JB If the no match found flag is activated
+      if (self.options.options.noMatchFound &&
+        //If the system is not in multple mode
+        !self.options.options.multipleOrg) {
         //Use a container that does not have tagging
         $selection = this.nonTagSelectionContainer();
+      } else {
+        //Use the original container with tagging
+        $selection = this.selectionContainer();
       }
 
       var formatted = this.display(selection, $selection);
