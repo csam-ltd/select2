@@ -24,9 +24,20 @@ define([
       data.push(option);
     });
 
+    //JB Need to update the system data with anything that is in the combo selection
+    if (this.$element.comboSelection) {
+      var el = this.$element.comboSelection;
+      for (var i = 0; i < el.length; i++) data.push(el[i]);
+    }
+
     callback(data);
   };
 
+  /**
+  * This handles the main functionality for selection of a tag
+  * @param {} data 
+  * @returns {} 
+  */
   SelectAdapter.prototype.select = function (data) {
     var self = this;
 
@@ -63,10 +74,19 @@ define([
       var val = data.id;
 
       this.$element.val(val);
+
+      //JB when adding user defined tags problems with the value being blocked can occur
+      if (self.$element[0].value === "") self.$element.comboSelection = data;
+
       this.$element.trigger('change');
     }
   };
 
+  /**
+   * This handles the main functionality for de selection of tag
+  * @param {} data 
+  * @returns {} 
+  */
   SelectAdapter.prototype.unselect = function (data) {
     var self = this;
 
@@ -95,11 +115,53 @@ define([
         }
       }
 
+      //JB If there is only one element and then user has chosen to remove it
+      if (currentData.length === 1) {
+        //Clear everything
+        self.$element.comboSelection = "";
+      } else {
+        var currentArray = self.$element.comboSelection;
+        //Remove all elements from the combo selection that has been unselected
+        for (var i = 0; i < currentArray.length; i++) {
+          if (currentArray[i].id === data.id) {
+            currentArray.splice(i, 1);
+          }
+        }
+        //Set the new array 
+        self.$element.comboSelection = currentArray;
+      }
+
+
       self.$element.val(val);
 
       self.$element.trigger('change');
     });
   };
+
+  /**
+  * JB Unselects all the items in the select 2 combo
+  * @param {} data 
+  * @returns {} 
+  */
+  SelectAdapter.prototype.unselectAll = function (data) {
+    var self = this;
+
+    //Get all the current selected items
+    var selectedElements = self.container.$selection
+      .find('.select2-selection__rendered')
+      .get(0)
+      .childNodes;
+    if (!selectedElements || !selectedElements.length) return;
+
+    //Un select all the items in the select2
+    for (var i = 0; i < selectedElements.length; i++) {
+      //Get the data from the selected element
+      var selectedElementData = $(selectedElements[i]).data('data');
+      if (!selectedElementData || !selectedElementData.length) continue;
+      //Call the unselect trigger for this element
+      self.unselect(selectedElementData[0]);
+    }
+  }
 
   SelectAdapter.prototype.bind = function (container, $container) {
     var self = this;
@@ -112,6 +174,12 @@ define([
 
     container.on('unselect', function (params) {
       self.unselect(params.data);
+    });
+
+    //jb
+    //Un selects everything in the select 2
+    container.on('unselectAll', function (params) {
+      self.unselectAll(params.data);
     });
   };
 

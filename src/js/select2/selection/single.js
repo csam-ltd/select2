@@ -27,6 +27,7 @@ define([
 
   SingleSelection.prototype.bind = function (container, $container) {
     var self = this;
+    var componentId = this.$element[0].id;
 
     SingleSelection.__super__.bind.apply(this, arguments);
 
@@ -48,10 +49,12 @@ define([
 
     this.$selection.on('focus', function (evt) {
       // User focuses on the container
+      if (self.options.options.eventOnFocus) self.options.options.eventOnFocus(evt, componentId);
     });
 
     this.$selection.on('blur', function (evt) {
       // User exits the container
+      if (self.options.options.eventOnBlur) self.options.options.eventOnBlur(evt, componentId);
     });
 
     container.on('focus', function (evt) {

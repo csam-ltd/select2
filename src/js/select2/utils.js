@@ -120,7 +120,7 @@ define([
     } else {
       this.listeners[event] = [callback];
     }
-  };
+  }; 
 
   Observable.prototype.trigger = function (event) {
     var slice = Array.prototype.slice;
@@ -271,6 +271,45 @@ define([
 
     $element.append($nodes);
   };
+
+  /**
+  * This closes any message windows which may be open at a given time
+  * @returns {} 
+  */
+  Utils.closeDialogueMessage = function (self) {
+    self.trigger('close', {});
+  }
+
+  //JB
+  /**
+   * Checks to see if the system can allow more than one selection
+   * @param {} self 
+   * @returns {} 
+   */
+  Utils.checkSingleSelectionOnly = function (self) {
+
+    //The no match found functionality must be activated
+    if (!self.options.options.noMatchFound ||
+      //If the system was not meant to be in single selection mode
+      self.options.options.multipleOrg === true) {
+      //Multiselection mode selection mode 
+      self.$search.prop('disabled', false);
+      return false;
+    }
+
+    //Check to see how many elements have been selected
+    var selectedElements = $("#" + self.$element[0].id).select2("data");
+    //If there is at least one selected item then we have to stop events
+    if (selectedElements.length > 0) {
+      //Single selection mode 
+      self.$search.prop('disabled', true);
+      return true;
+    }
+    //Multiselection mode selection mode 
+    self.$search.prop('disabled', false);
+    return false;
+
+  }
 
   return Utils;
 });

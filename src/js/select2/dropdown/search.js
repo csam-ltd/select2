@@ -30,7 +30,6 @@ define([
 
     this.$search.on('keydown', function (evt) {
       self.trigger('keypress', evt);
-
       self._keyUpPrevented = evt.isDefaultPrevented();
     });
 

@@ -43,11 +43,46 @@ define([
 
     var message = this.options.get('translations').get(params.message);
 
-    $message.append(
-      escapeMarkup(
-        message(params.args)
-      )
-    );
+    /**
+     * JB
+     */
+    //Get the parameters from the function
+    var parameters = params.params;
+
+    //JDisplay this as html
+    if (parameters && parameters.displayHtml !== undefined) {
+
+      //Create a new a link element
+      var html = document.createElement('a');
+      html.innerText = escapeMarkup(message(params.args));
+
+      //Add a class so that it can be identified
+      $(html).addClass("select2-NotFound");
+
+      var searchBoxText = this.data.container.selection.$searchContainer["0"].children["0"].value;
+
+      //Add the current input text from the field into the data so that we have access to it later
+      if (searchBoxText && searchBoxText.length)
+        $(html).data("InputText", searchBoxText);
+
+      var selectorId = this.$element;
+
+      //If there is a an on click function add it to an event listener
+      if (parameters.onClickFunction) html.addEventListener("click", function () {
+        parameters.onClickFunction(selectorId[0].id);
+      });
+
+      //Allows the addition of html elements
+      $message.append(html);
+
+    } else {
+      //This is old standard message
+      $message.append(
+        escapeMarkup(
+          message(params.args)
+        )
+      );
+    }
 
     $message[0].className += ' select2-results__message';
 
@@ -434,6 +469,17 @@ define([
       var $this = $(this);
 
       var data = $this.data('data');
+
+      //JB if it is single we want to remove the old value first
+      if (self.options.options.noMatchFound && !self.options.options.multipleOrg) {
+
+        //Unselect all the current items first
+        self.trigger('unselectAll',
+          {
+            originalEvent: evt,
+            data: data
+          });
+      }
 
       if ($this.attr('aria-selected') === 'true') {
         if (self.options.get('multiple')) {

@@ -16,6 +16,7 @@ define([
     decorated.call(this, container, $container);
 
     container.on('open', function () {
+
       self._showDropdown();
       self._attachPositioningHandler(container);
 
