@@ -354,6 +354,25 @@ define([
   };
 
   Select2.prototype._syncAttributes = function () {
+
+    //JB If the class attributes has been changed
+    if (mutations &&
+        mutations.type === "attributes" &&
+        mutations.attributeName === "class") {
+
+        /* The input-validation has been set by the jquery validation
+            however due to this being a select 2 element it has set on the wrong
+            element in the dom, this will now be corrected
+        */
+
+        //Capture the component that experienced the class change
+        var select2Component = mutations.target;
+        if (!select2Component) return;
+        var self = this;
+        //Toggle the validation error visuals
+        Utils.toggleValidationErrorClass(self,select2Component);
+    }
+
     this.options.set('disabled', this.$element.prop('disabled'));
 
     if (this.options.get('disabled')) {

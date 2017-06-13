@@ -311,5 +311,51 @@ define([
 
   }
 
+  /**
+   * Toogles the validation error warning for the component
+   * @param {} isApply 
+   * @returns {} 
+   */
+  Utils.toggleValidationErrorClass = function (self,component) {
+      if (!self || !component) return;
+
+      //Check to see if the input validation error class has been added
+      var isApply = component.classList.contains("input-validation-error"),
+          componentName = component['name'];
+      //Find the select 2 selection in the dom
+      var selectionNode = self.$container.get(0).querySelector(".select2-selection");
+      if (!selectionNode) return;
+
+      //Are we applying or removing
+      if (isApply) {
+          //Add the input validation error at this level
+          selectionNode.classList.add("input-validation-error");
+      } else {
+          //Remove if it is there
+          if (selectionNode.classList.contains("input-validation-error")) {
+              selectionNode.classList.remove("input-validation-error");
+          }
+          else return;
+          
+      }
+
+      //Get the name attribute from the select2 obj
+      if (!componentName || !componentName.length) return;
+
+      //Find the label which matches this select2 component
+      var lblTitle = $("label[for='" + componentName + "']").get(0);
+      if (!lblTitle) return;
+
+      //Are we applying or removing
+      if (isApply) {
+          //Add the label-validation error to the label
+          lblTitle.classList.add("label-validation-error");
+      } else {
+          //Remove the label validation if its still there
+          if (lblTitle.classList.contains("label-validation-error"))
+              lblTitle.classList.remove("label-validation-error");
+      }              
+  }
+
   return Utils;
 });
