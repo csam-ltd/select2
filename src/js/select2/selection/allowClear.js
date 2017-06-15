@@ -60,7 +60,7 @@ define([
       }
     }
 
-    this.$element.val(this.placeholder.id).trigger('change');
+    if (this.placeholder && this.placeholder.id) this.$element.val(this.placeholder.id).trigger('change');
 
     this.trigger('toggle', {});
   };
