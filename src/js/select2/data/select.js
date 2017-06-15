@@ -84,58 +84,54 @@ define([
 
   /**
    * This handles the main functionality for de selection of tag
-  * @param {} data 
-  * @returns {} 
-  */
+   * @param {} data 
+   * @returns {} 
+   */
   SelectAdapter.prototype.unselect = function (data) {
-    var self = this;
+      var self = this;
 
-    if (!this.$element.prop('multiple')) {
-      return;
-    }
-
-    data.selected = false;
-
-    if ($(data.element).is('option')) {
-      data.element.selected = false;
-
-      this.$element.trigger('change');
-
-      return;
-    }
-
-    this.current(function (currentData) {
-      var val = [];
-
-      for (var d = 0; d < currentData.length; d++) {
-        var id = currentData[d].id;
-
-        if (id !== data.id && $.inArray(id, val) === -1) {
-          val.push(id);
-        }
+      if (!this.$element.prop('multiple')) {
+          return;
       }
 
-      //JB If there is only one element and then user has chosen to remove it
-      if (currentData.length === 1) {
-        //Clear everything
-        self.$element.comboSelection = "";
-      } else {
-        var currentArray = self.$element.comboSelection;
-        //Remove all elements from the combo selection that has been unselected
-        for (var i = 0; i < currentArray.length; i++) {
-          if (currentArray[i].id === data.id) {
-            currentArray.splice(i, 1);
+      data.selected = false;
+
+      //jb
+      var currentArray = self.$element.comboSelection;
+      if (currentArray) {
+          //Remove all elements from the combo selection that has been unselected
+          for (var i = 0; i < currentArray.length; i++) {
+              if (currentArray[i].id === data.id) {
+                  currentArray.splice(i, 1);
+              }
           }
-        }
-        //Set the new array 
-        self.$element.comboSelection = currentArray;
+          //Set the new array 
+          self.$element.comboSelection = currentArray;
       }
 
+      if ($(data.element).is('option')) {
+          data.element.selected = false;
 
-      self.$element.val(val);
+          this.$element.trigger('change');
 
-      self.$element.trigger('change');
-    });
+          return;
+      }
+
+      this.current(function (currentData) {
+          var val = [];
+
+          for (var d = 0; d < currentData.length; d++) {
+              var id = currentData[d].id;
+
+              if (id !== data.id && $.inArray(id, val) === -1) {
+                  val.push(id);
+              }
+          }
+
+          self.$element.val(val);
+
+          self.$element.trigger('change');
+      });
   };
 
   /**
