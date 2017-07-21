@@ -23,13 +23,6 @@ define([
 
       data.push(option);
     });
-
-    //JB Need to update the system data with anything that is in the combo selection
-    if (this.$element.comboSelection) {
-      var el = this.$element.comboSelection;
-      for (var i = 0; i < el.length; i++) data.push(el[i]);
-    }
-
     callback(data);
   };
 
@@ -40,15 +33,16 @@ define([
   */
   SelectAdapter.prototype.select = function (data) {
     var self = this;
-
     data.selected = true;
+    //Check the options to see if the system was meant to be single selection
+    var isSingleSelection = !this.options.get("multipleOrg");
+    //Unselect all first
+    if(isSingleSelection)self.unselectAll();
 
     // If data.element is a DOM node, use it instead
     if ($(data.element).is('option')) {
       data.element.selected = true;
-
       this.$element.trigger('change');
-
       return;
     }
 
@@ -74,10 +68,6 @@ define([
       var val = data.id;
 
       this.$element.val(val);
-
-      //JB when adding user defined tags problems with the value being blocked can occur
-      if (self.$element[0].value === "") self.$element.comboSelection = data;
-
       this.$element.trigger('change');
     }
   };
@@ -95,19 +85,6 @@ define([
       }
 
       data.selected = false;
-
-      //jb
-      var currentArray = self.$element.comboSelection;
-      if (currentArray) {
-          //Remove all elements from the combo selection that has been unselected
-          for (var i = 0; i < currentArray.length; i++) {
-              if (currentArray[i].id === data.id) {
-                  currentArray.splice(i, 1);
-              }
-          }
-          //Set the new array 
-          self.$element.comboSelection = currentArray;
-      }
 
       if ($(data.element).is('option')) {
           data.element.selected = false;
@@ -134,29 +111,64 @@ define([
       });
   };
 
+   /**
+   * JB Unselects all the items in the select 2 combo
+   * @param {} data 
+   * @returns {} 
+   */
+  SelectAdapter.prototype.unselectAll = function () {
+      var self = this;    
+      //This retrieve all the possible options from the select component
+      var allOptions = self.$element.children().get();
+      //Need to check for the nothing option
+      if(allOptions[0].selected && allOptions[0].innerText === ""){
+      //We have to make the an obj to be compatible with the unselect functon
+          var nothingOption = {
+              selected : true,
+              element : allOptions[0],
+          }
+          self.unselect(nothingOption);
+      }
+
+      //If there are groupings in this select 2 instance we need to filter then out
+      if(self.checkForGroup(allOptions)){
+          allOptions = $(allOptions).find("option");
+      }
+
+      //We need to get just the options that have been selected by the user
+      for(let i =0; i < allOptions.length; i++){
+          var option = allOptions[i];
+          if(!option) continue;
+          
+          //A selected option should then be removed
+          if(option.selected) {
+              //We have to make the an obj to be compatible with the unselect functon
+              var data = {
+                  selected : true,
+                  element : option,
+              }
+              self.unselect(data);
+          }
+      }
+  }
+
   /**
-  * JB Unselects all the items in the select 2 combo
-  * @param {} data 
-  * @returns {} 
-  */
-  SelectAdapter.prototype.unselectAll = function (data) {
-    var self = this;
+   * Checks to see if there any options in the 
+   */
+  SelectAdapter.prototype.checkForGroup = function(options){
+      var groupsDetected = false;
 
-    //Get all the current selected items
-    var selectedElements = self.container.$selection
-      .find('.select2-selection__rendered')
-      .get(0)
-      .childNodes;
-    if (!selectedElements || !selectedElements.length) return;
-
-    //Un select all the items in the select2
-    for (var i = 0; i < selectedElements.length; i++) {
-      //Get the data from the selected element
-      var selectedElementData = $(selectedElements[i]).data('data');
-      if (!selectedElementData || !selectedElementData.length) continue;
-      //Call the unselect trigger for this element
-      self.unselect(selectedElementData[0]);
-    }
+      //Loop through all the options to get for optgroups
+      for(let i=0; i < options.length; i++){
+          var $option = $(options);
+          if(! $option)return
+          if($option.is("optgroup")) {
+              //Set the flag is we have found something
+              groupsDetected = true;
+              break;
+          }
+      }
+      return groupsDetected;
   }
 
   SelectAdapter.prototype.bind = function (container, $container) {

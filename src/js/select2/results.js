@@ -43,47 +43,12 @@ define([
 
     var message = this.options.get('translations').get(params.message);
 
-    /**
-     * JB
-     */
-    //Get the parameters from the function
-    var parameters = params.params;
-
-    //JDisplay this as html
-    if (parameters && parameters.displayHtml !== undefined) {
-
-      //Create a new a link element
-      var html = document.createElement('a');
-      html.innerText = escapeMarkup(message(params.args));
-
-      //Add a class so that it can be identified
-      $(html).addClass("select2-NotFound");
-
-      var searchBoxText = this.data.container.selection.$searchContainer["0"].children["0"].value;
-
-      //Add the current input text from the field into the data so that we have access to it later
-      if (searchBoxText && searchBoxText.length)
-        $(html).data("InputText", searchBoxText);
-
-      var selectorId = this.$element;
-
-      //If there is a an on click function add it to an event listener
-      if (parameters.onClickFunction) html.addEventListener("click", function () {
-        parameters.onClickFunction(selectorId[0].id);
-      });
-
-      //Allows the addition of html elements
-      $message.append(html);
-
-    } else {
-      //This is old standard message
-      $message.append(
-        escapeMarkup(
-          message(params.args)
-        )
-      );
-    }
-
+    $message.append(
+      escapeMarkup(
+        message(params.args)
+      )
+    );
+    
     $message[0].className += ' select2-results__message';
 
     this.$results.append($message);
@@ -93,11 +58,16 @@ define([
     this.$results.find('.select2-results__message').remove();
   };
 
+  /**
+   * jb
+   * Add an option to the current dropdown results
+   */
   Results.prototype.append = function (data) {
+    var self = this;
     this.hideLoading();
-
     var $options = [];
 
+    //Display the no results is nothing has been found
     if (data.results == null || data.results.length === 0) {
       if (this.$results.children().length === 0) {
         this.trigger('results:message', {
@@ -108,18 +78,67 @@ define([
       return;
     }
 
+    //Alabetically sort the results
     data.results = this.sort(data.results);
 
     for (var d = 0; d < data.results.length; d++) {
       var item = data.results[d];
-
       var $option = this.option(item);
 
       $options.push($option);
     }
-
+    
+    //Allows the user to add a result
+    self.userCreatedResult($options.get());
+  
     this.$results.append($options);
   };
+
+  /**
+   * Adds a result which asks the user if they want to create
+   * a not currently existing item
+   */
+  Results.prototype.userCreatedResult = function (results){
+    if(!results || ! results.length) return;
+
+    /*Select 2 adds a result which matches the query
+      exactly so it can be added by the user if it does
+      not exist
+     */
+    var queryResult;
+    for(let i =0; i < results.length; i++){
+      var result = results[i];
+      if(! result) continue;
+      //The query result will not have an id, all others do
+      if(result.getAttribute("Id")) continue;
+      queryResult = result;
+      break;
+    }
+
+    //Nothing was found, this usually means the user has not searched
+    if (queryResult === undefined) return;
+    //Update the html of the element
+    queryResult.innerHTML = self.createResultElement(queryResult.text);
+  }
+
+  /**
+   * Generates the user create option html
+   * @returns {} 
+   */
+  Results.prototype.createResultElement = function(optionText) {
+      
+    //Create the span elements that are needed for this component
+    var spanElement = document.createElement("span"),
+        hereSpan = document.createElement("span");
+
+    //Make this look like an anchor
+    hereSpan.classList.add("SpanLink");
+    hereSpan.innerText = "here";
+
+    spanElement.innerHTML = '"' + optionText + '" doesn\'t exist. Click ' + hereSpan + 'to create it.';
+    return spanElement;
+
+  }
 
   Results.prototype.position = function ($results, $dropdown) {
     var $resultsContainer = $dropdown.find('.select2-results');
@@ -285,7 +304,6 @@ define([
     container.on('results:all', function (params) {
       self.clear();
       self.append(params.data);
-
       if (container.isOpen()) {
         self.setClasses();
         self.highlightFirstItem();
@@ -330,6 +348,8 @@ define([
 
       self.setClasses();
       self.ensureHighlightVisible();
+      //Hide the current selected item to give the user room to type
+      self.toggleHiddenSelection(true)
     });
 
     container.on('close', function () {
@@ -337,6 +357,8 @@ define([
       self.$results.attr('aria-expanded', 'false');
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
+      //Show any content which may be hidden
+      self.toggleHiddenSelection(false)
     });
 
     container.on('results:toggle', function () {
@@ -512,6 +534,47 @@ define([
         element: $(this)
       });
     });
+  };
+
+  /**
+   * When a container is opened or closed 
+   * we need to hide tags to give the user space to type
+   * in the case of a single selection
+   */
+  Results.prototype.toggleHiddenSelection = function(isContainerOpen){
+      var self = this;
+      //Check that the no match found functionality is enabled
+      if (!this.options.get("noMatchFound") || 
+          //This should be a single selection drop box
+          this.options.get("multipleOrg"))
+          return;
+
+      //We need to check to see if there any options that have been selected                            
+      var selectedTags = $(self.data.container.$selection)
+          .find(".select2-selection__choice")
+          .get();
+      if(! selectedTags ||! selectedTags.length)return;
+
+      //Loop through all the tags, there is normally one but there might be more
+      for(let i =0; i < selectedTags.length; i++){
+          var $tag = $(selectedTags[i]);
+          if(! $tag) continue;
+          
+          //Is the container opening
+          if(isContainerOpen){
+              //Hide the option that is currently selected
+              $tag.css("display","none");
+              $tag.addClass("hidden");
+          }
+          else{
+              //The container is closing
+              if($tag.hasClass("hidden")){
+                  //Unhide the tag
+                  $tag.css("display","inline")
+                  $tag.removeClass("hidden");
+              }
+          }
+      }
   };
 
   Results.prototype.getHighlightedResults = function () {

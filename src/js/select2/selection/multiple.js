@@ -28,15 +28,12 @@ define([
     MultipleSelection.__super__.bind.apply(this, arguments);
 
     this.$selection.on('click', function (evt) {
-
-      //Don't do this in single mode
-      if (!Utils.checkSingleSelectionOnly(self)) {
-        //Multi selection mode
-        self.trigger('toggle',
-          {
-            originalEvent: evt
-          });
-      }
+      //Multi selection mode
+      self.trigger('toggle',
+        {
+          originalEvent: evt
+        });
+      
     });
 
     this.$search.on('focus', function (evt) {
