@@ -272,6 +272,44 @@ define([
     $element.append($nodes);
   };
 
+  //<JB>
+
+  /**
+   * Hide or show the visibility of the component
+   */
+  Utils.toggleBlinkingCursorVisibility = function (self, isVisible) {
+    if(! self)return;
+
+    //Find the search input field for this select 2 component
+    var searchInput = self.container.$container.get(0).querySelector(".select2-search__field");
+    if(!searchInput)return;
+
+    //What state is the cursor currently in
+    var currentVisible = !searchInput.classList.contains("hide-blinking-cursor");
+    if(isVisible){
+        //Cursor needs to be show remove the class that hides it
+        if(currentVisible) return;
+        searchInput.classList.remove("hide-blinking-cursor");
+    }
+    else{
+        //Cursor needs to be hidden add the class which hides it
+        if(! currentVisible) return;
+        searchInput.classList.add("hide-blinking-cursor");
+    }
+  }
+
+  /**
+   * This returns the current search input either from the select 2 cache 
+   * or from the dom
+   */
+  Utils.getSearchInput = function(self){
+      //If can be found in $search
+      if(self.hasOwnProperty("$search")) return self.$search.get(0);
+      //Retrieve from the current dom
+      if(self.hasOwnProperty("data")) return self.data.container.selection.$search.get(0);
+      return undefined;
+  }
+
   /**
   * This closes any message windows which may be open at a given time
   * @returns {} 
@@ -281,7 +319,7 @@ define([
   }
 
   /**
-   * jbToogles the validation error warning for the component
+   * Toogles the validation error warning for the component
    * @param {} isApply 
    * @returns {} 
    */
@@ -325,6 +363,8 @@ define([
               lblTitle.classList.remove("label-validation-error");
       }              
   }
+
+  //</JB>
 
   return Utils;
 });

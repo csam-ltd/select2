@@ -349,7 +349,9 @@ define([
       self.setClasses();
       self.ensureHighlightVisible();
       //Hide the current selected item to give the user room to type
-      self.toggleHiddenSelection(true)
+      self.toggleHiddenSelection(true);
+      //JB We need to show the blinking cursor so that the user can see what they are typing
+      Utils.toggleBlinkingCursorVisibility(self,true);
     });
 
     container.on('close', function () {
@@ -358,7 +360,9 @@ define([
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
       //Show any content which may be hidden
-      self.toggleHiddenSelection(false)
+      self.toggleHiddenSelection(false);
+      //JB We need to show the blinking cursor so that the user can see what they are typing
+      Utils.toggleBlinkingCursorVisibility(self,false);
     });
 
     container.on('results:toggle', function () {
