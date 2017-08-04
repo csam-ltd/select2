@@ -278,11 +278,11 @@ define([
    * Hide or show the visibility of the component
    */
   Utils.toggleBlinkingCursorVisibility = function (self, isVisible) {
-    if(! self)return;
+    if(!self)return;
 
-    //Find the search input field for this select 2 component
-    var searchInput = self.container.$container.get(0).querySelector(".select2-search__field");
-    if(!searchInput)return;
+    //This is cached search field from the select 2 component
+    var searchInput = Utils.getSearchInput(self);
+    if (!searchInput) return;
 
     //What state is the cursor currently in
     var currentVisible = !searchInput.classList.contains("hide-blinking-cursor");
