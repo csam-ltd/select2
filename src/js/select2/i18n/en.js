@@ -40,9 +40,10 @@ define(function () {
     searching: function () {
       return 'Searching…';
     },
-    //JB New entry for the no match found functionality
-    noMatchFound : function () {
-      return 'This item does not current exist, click here to add it';
+    activeEntityWarning: function(entityName){
+      
+      if(entityName === "Various")return 'Some of the elements selected are inactive and have been unselected';
+      return entityName + " is currently set to inactive and can't be used.";
     }
   };
 });

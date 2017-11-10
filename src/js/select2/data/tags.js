@@ -42,25 +42,6 @@ define([
 
     function wrapper (obj, child) {
       var data = obj.results;
-      //JB If there is no data back from the server 
-      if (!data.length) {
-        //Get the options for the calendar for what to do when there are no matches
-        if (self.options.options.noMatchFound === true) {
-
-          //Give the message to the user to add this to the combo box as a tag
-          self.trigger('results:message', {
-            message: 'noMatchFound',
-            params: {
-              displayHtml: true,
-              onClickFunction: self.options.options.noMatchFoundOnClickFunction
-            }
-          });
-
-          //Just leave at this point as we don't need to add it to the combo
-          return;
-        }
-      }
-
       for (var i = 0; i < data.length; i++) {
         var option = data[i];
 

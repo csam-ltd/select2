@@ -272,7 +272,51 @@ define([
     $element.append($nodes);
   };
 
-  //<JB>
+//<JB>
+
+/**
+* Tags that are known to be inactive
+*/
+var inactiveTagCache = [];
+
+  /**
+   * Registers a tag as inactive
+   * @param {} tag 
+   * @returns {} 
+   */
+  Utils.registerInactiveTag = function(tag) {
+      inactiveTagCache.push(tag);
+  }
+
+  /**
+   * Checks the inactive tag cache too check 
+   * @param {} options 
+   * @returns {} 
+   */
+  Utils.isInactiveTag = function (tag,self) {
+
+      //There are no inactive tags registered
+      if (!inactiveTagCache || !inactiveTagCache.length) return false;
+
+      for (let i = 0; i < inactiveTagCache.length; i++) {
+          //Return true only if we find the tag
+          if (tag !== inactiveTagCache[i]) continue;
+
+          //Warn the user, the tag is inactive
+          self.trigger('results:message', {
+              message: 'activeEntityWarning',
+              args: tag
+          });
+
+          //Clear the search text
+          self.container.$selection.get(0)
+              .querySelectorAll(".select2-search__field")[0]
+              .value = "";
+              
+          return true;
+      }
+      return false;
+  }
 
   /**
    * Hide or show the visibility of the component
@@ -362,6 +406,69 @@ define([
           if (lblTitle.classList.contains("label-validation-error"))
               lblTitle.classList.remove("label-validation-error");
       }              
+  }
+
+/**
+   * Orders an array of objects given a property in that object
+   */
+  Utils.orderBy = function(property,array){
+    
+      //Check that the property exists
+    if(!property || property === "" || 
+          //Check that the array exists and there is at least one element
+        !array || ! array.length
+        //Check that property exists in the array
+        ||! array[0].hasOwnProperty(property))return undefined;
+        
+    var idDictionary = [], sortingArray = [], resultArray = [];
+    var addNewItemResult = undefined;
+    
+    //Build up a dictionary
+    for(let i=0; i < array.length; i++){
+      var obj = array[i];
+      if(!obj)continue;
+
+      //If a result is found which tells the user to add it to the db
+      if(!obj.element){
+          addNewItemResult = obj;
+          continue;
+      }
+          
+      //Add the property and the entire obj
+      idDictionary.push({id : obj[property], value : obj});
+      //Adds to array to be sorted
+      sortingArray.push(obj[property]);
+    }
+  
+    //Sort the array either alphabetically or numerically depending on the data
+    sortingArray = sortingArray.sort();
+    //Make sure the new item result is not sorted and is instead added first
+    if(addNewItemResult) resultArray.push(addNewItemResult);
+  
+    for(let i=0; i < sortingArray.length; i++){
+      //Find the obj that matchs the id 
+      var sObj = findByProperty(sortingArray[i]);
+      if(!sObj)continue;
+      //Add the obj in order to the final array
+      resultArray.push(sObj);
+  
+    }
+  
+    /**
+     * Finds the object based on the property
+     */
+    function findByProperty(property){
+      //loop through the dictionary until we find the id
+      for(let i=0; i < idDictionary.length; i++){
+          //Return the value when we find it
+          if(idDictionary[i].id === property)return idDictionary[i].value;
+      }
+  
+      //nothing found
+      return undefined;
+    }
+  
+    return resultArray;
   }
 
   //</JB>

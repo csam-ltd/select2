@@ -59,7 +59,6 @@ define([
   };
 
   /**
-   * jb
    * Add an option to the current dropdown results
    */
   Results.prototype.append = function (data) {
@@ -69,75 +68,88 @@ define([
 
     //Display the no results is nothing has been found
     if (data.results == null || data.results.length === 0) {
-      if (this.$results.children().length === 0) {
-        this.trigger('results:message', {
-          message: 'noResults'
-        });
-      }
-
-      return;
+        if (this.$results.children().length === 0) {
+            this.trigger('results:message', {
+                message: 'noResults'
+            });
+        }
+        return;
     }
 
     //Alabetically sort the results
     data.results = this.sort(data.results);
+    //order by the text property
+    if (self.options.get("noMatchFound")) data.results = Utils.orderBy("text", data.results);
+    //If an exact match has been found we don't want message saying to 
+    var existMatchFound = false;
+    var searchText = data.data || undefined;
 
     for (var d = 0; d < data.results.length; d++) {
-      var item = data.results[d];
-      var $option = this.option(item);
+        var item = data.results[d];
+        var $option = this.option(item);
+        //If an exist match has been found then don't add message asking the user to add it
+        if (searchText &&
+            searchText[0] &&
+            searchText[0].text === item.text) existMatchFound = true;
 
-      $options.push($option);
+        $options.push($option);
     }
-    
-    //Allows the user to add a result
-    self.userCreatedResult($options.get());
-  
-    this.$results.append($options);
-  };
 
+    //Allows the user to add a result, if the no match found functionality is enabled
+    if (self.options.get("noMatchFound") && !existMatchFound)
+        self.userCreatedResult($options, self);
+
+    this.$results.append($options);
+
+};
+
+  //TODO Need to only do this is the new functionality
   /**
+   * jb
    * Adds a result which asks the user if they want to create
    * a not currently existing item
    */
-  Results.prototype.userCreatedResult = function (results){
-    if(!results || ! results.length) return;
+  Results.prototype.userCreatedResult = function (results,self) {
+    if (!results || !results.length) return;
 
     /*Select 2 adds a result which matches the query
       exactly so it can be added by the user if it does
       not exist
-     */
+      */
     var queryResult;
-    for(let i =0; i < results.length; i++){
-      var result = results[i];
-      if(! result) continue;
-      //The query result will not have an id, all others do
-      if(result.getAttribute("Id")) continue;
-      queryResult = result;
-      break;
+    for (let i = 0; i < results.length; i++) {
+        var result = results[i];
+        if (!result) continue;
+        //The query result will not have an id, all others do
+        if (result.getAttribute("Id")) continue;
+        queryResult = result;
+        break;
     }
-
     //Nothing was found, this usually means the user has not searched
     if (queryResult === undefined) return;
+    
+    /**To stop the inner text being display twice we need to remove 
+     * the innerText that was there originally 
+     */
+    var queryResultText = queryResult.innerText;
+    if (!queryResultText || queryResultText.length < 1) return;
+
+    queryResult.innerText = "";
     //Update the html of the element
-    queryResult.innerHTML = self.createResultElement(queryResult.text);
+    queryResult.append(self.createResultElement(queryResultText));
   }
 
   /**
    * Generates the user create option html
    * @returns {} 
    */
-  Results.prototype.createResultElement = function(optionText) {
-      
+  Results.prototype.createResultElement = function (optionText) {
     //Create the span elements that are needed for this component
-    var spanElement = document.createElement("span"),
-        hereSpan = document.createElement("span");
-
-    //Make this look like an anchor
-    hereSpan.classList.add("SpanLink");
-    hereSpan.innerText = "here";
-
-    spanElement.innerHTML = '"' + optionText + '" doesn\'t exist. Click ' + hereSpan + 'to create it.';
+    var spanElement = document.createElement("span");
+    spanElement.innerHTML = '"' + optionText + '" doesn\'t exist. Click <span class="spanLink" >here</span> to create it.';
+    //Create an attribute to identify this component as a user created result
+    spanElement.setAttribute("addNewItemResult", "true");
     return spanElement;
-
   }
 
   Results.prototype.position = function ($results, $dropdown) {
@@ -348,6 +360,8 @@ define([
 
       self.setClasses();
       self.ensureHighlightVisible();
+      //Remove any duplicate results that may have crept in on the last selection
+      self.checkForDuplicateResults(self);
       //Hide the current selected item to give the user room to type
       self.toggleHiddenSelection(true);
       //JB We need to show the blinking cursor so that the user can see what they are typing
@@ -359,7 +373,7 @@ define([
       self.$results.attr('aria-expanded', 'false');
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
-      //Show any content which may be hidden
+      //JB Show any content which may be hidden
       self.toggleHiddenSelection(false);
       //JB We need to show the blinking cursor so that the user can see what they are typing
       Utils.toggleBlinkingCursorVisibility(self,false);
@@ -496,17 +510,6 @@ define([
 
       var data = $this.data('data');
 
-      //JB if it is single we want to remove the old value first
-      if (self.options.options.noMatchFound && !self.options.options.multipleOrg) {
-
-        //Unselect all the current items first
-        self.trigger('unselectAll',
-          {
-            originalEvent: evt,
-            data: data
-          });
-      }
-
       if ($this.attr('aria-selected') === 'true') {
         if (self.options.get('multiple')) {
           self.trigger('unselect', {
@@ -539,6 +542,43 @@ define([
       });
     });
   };
+
+  /**
+   * Checks for duplicate results in the select2 dropdown
+   */
+  Results.prototype.checkForDuplicateResults = function(self){
+    //Get all the possible options from select2
+    var opts = self.$element.get(0).children;
+    if(!opts || !opts.length) return;
+    //The value that has been selected previously
+    var selectedOpt = null;
+
+    for(let i=0; i < opts.length; i++){
+        //If the option is selected
+        if(opts[i].selected) {
+            //Set the selected option to the data for the option el
+            selectedOpt = $(opts[i]).data().data;
+            break;
+        }
+    }
+
+    //We need to ignore blank values
+    if(!selectedOpt || selectedOpt.text === "") return;
+
+    for(let i=0; i < opts.length; i++){
+        var optData = $(opts[i]).data().data;
+        //We only want records that match the selected option
+        if(!optData || optData.text !== selectedOpt.text)continue;
+
+        //If there result ids are different this indicates duplicate data
+        if(optData._resultId !== selectedOpt._resultId){
+            //Remove the extra record
+            self.$element.get(0).removeChild(optData.element);
+            break;
+        }
+    }
+  }
+
 
   /**
    * When a container is opened or closed 

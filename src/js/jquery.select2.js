@@ -11,6 +11,16 @@ define([
 
     $.fn.select2 = function (options) {
       options = options || {};
+       //JB CSAM runtime options
+       if(options.type === "RuntimeOptions"){
+        //Get the current running instance
+        var instance = $(this[0]).data('select2');
+        if(! instance)return;
+
+        //Run the runtime options
+        var ret = instance["runtimeOptions"](options);
+        return;
+    }
 
       if (typeof options === 'object') {
         this.each(function () {

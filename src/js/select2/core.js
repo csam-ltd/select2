@@ -413,6 +413,7 @@ define([
         }
       }
     } else if (mutations.removedNodes && mutations.removedNodes.length > 0) {
+      if (evt === 0) return;
       changed = true;
     }
 
@@ -545,6 +546,39 @@ define([
     return data;
   };
 
+  /**
+   * This will return all data including new tags, the above does not do this
+    */
+  Select2.prototype.allData = function () {
+    var self = this;
+
+    //Get the current selection from the select2 element
+    var selectedItems = this.$selection.get(0).querySelector(".select2-selection__rendered").children;
+    if (! selectedItems || !selectedItems.length) return [];
+
+    var data = [];
+
+    //We need to loop through all the selected items
+    for(let i=0; i < selectedItems.length; i++){
+        var item = selectedItems[i];
+        //If the item is null or its search bar then move on
+        if(!item || item.classList.contains("select2-search--inline"))continue;
+        //Get access the data tag
+        var itemData = $(item).data().data;
+        if(!itemData)return [];
+
+        /*If a new tag has been selected it won't have a proper id, 
+        *it gets set to the same as the text*/
+        var isNew = itemData.id === itemData.text;
+        itemData.newTag = isNew;
+        
+        data.push(itemData);
+
+    }
+
+    return data;
+  }
+
   Select2.prototype.val = function (args) {
     if (this.options.get('debug') && window.console && console.warn) {
       console.warn(
@@ -619,13 +653,77 @@ define([
     $container.attr('dir', this.options.get('dir'));
 
     this.$container = $container;
-
     this.$container.addClass('select2-container--' + this.options.get('theme'));
-
     $container.data('element', this.$element);
 
     return $container;
   };
+
+  /**
+   * Options which can be running after the select 2 instantiated
+   */
+  Select2.prototype.runtimeOptions = function(options){
+    var self = this;
+
+    //Which action to use 
+    switch(options.action){
+        case "InactiveEntity":{
+            inactiveEntity(options.data);
+            return;
+        }
+    }
+
+    /**
+     * inactive entity functionality runs when the user has 
+     * chosen a tag that is inactive
+     */
+    function inactiveEntity(inactiveTags){
+        //If the the container is not currently open, then we need to open it first
+        if(! self.isOpen()) self.trigger('open', {});
+        //Generate the user message
+        var userMsg = inactiveTags.length > 1 ?
+            "Various"
+            : inactiveTags[0].entityName;
+
+        //Get all the possible options from the select component
+        var options = self.$element.get(0).children;
+        if(! options || !options.length)return;
+
+        for(let i=0; i < options.length; i++){
+            //We are only interested in elements that are new tags
+            if(!options[i].hasAttribute("data-select2-tag"))continue;
+            var newTagOption = options[i];
+
+            for(let j =0; j < inactiveTags.length;j++){
+                //Skip if it does not match
+                if (inactiveTags[j].entityName !== newTagOption.value) continue;
+                //We know this tag to be inactive now
+                Utils.registerInactiveTag(inactiveTags[j].entityName);
+
+                //The self .trigger function requires this data structure
+                var deletionTag = {
+                    data : {
+                        selected : true,
+                        element : newTagOption
+                    }
+                };
+
+                //Unselect tags that are deemed to be inactive
+                self.trigger('unselect',deletionTag);    
+            }
+        }
+
+        //The container must be open for the validation msg below to show
+        if(! self.isOpen()) self.trigger('open', {});
+
+        //Warn the user
+        self.trigger('results:message',{
+            message: 'activeEntityWarning',
+            args: userMsg
+        });
+    }
+        
+}
 
   return Select2;
 });

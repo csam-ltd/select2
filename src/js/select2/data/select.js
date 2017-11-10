@@ -27,51 +27,60 @@ define([
   };
 
   /**
-  * This handles the main functionality for selection of a tag
-  * @param {} data 
-  * @returns {} 
-  */
+   * This handles the main functionality for selection of a tag
+   * @param {} data 
+   * @returns {} 
+   */
   SelectAdapter.prototype.select = function (data) {
     var self = this;
+    //Don't allow the tag to be selected if it is inactive
+    if (Utils.isInactiveTag(data.text,self)) return;
+    
     data.selected = true;
     //Check the options to see if the system was meant to be single selection
-    var isSingleSelection = !this.options.get("multipleOrg");
+    var isSingleSelection = !this.options.get("multipleOrg"),
+        noMatchFound = this.options.get("noMatchFound");
+
     //Unselect all first
-    if(isSingleSelection)self.unselectAll();
+    if(isSingleSelection && noMatchFound)self.unselectAll();
 
-    // If data.element is a DOM node, use it instead
-    if ($(data.element).is('option')) {
-      data.element.selected = true;
-      this.$element.trigger('change');
+    //If data.element is a DOM node, use it instead
+    if ($(data.element).is('option')) {                   
+        data.element.selected = true;
+        this.$element.trigger('change');
 
-      //JB We need to show the blinking cursor so that the user can see what they are typing
-      Utils.toggleBlinkingCursorVisibility(self,false);
-      return;
+        //JB We need to show the blinking cursor so that the user can see what they are typing
+        Utils.toggleBlinkingCursorVisibility(self,false);
+        return;
     }
 
     if (this.$element.prop('multiple')) {
-      this.current(function (currentData) {
-        var val = [];
+        this.current(function (currentData) {
+            var val = [];
 
-        data = [data];
-        data.push.apply(data, currentData);
+            data = [data];
+            
+            //JB If the tag does not have a proper id yet then its a new tag
+            if(data.id === data.text) data.newTag = true;
 
-        for (var d = 0; d < data.length; d++) {
-          var id = data[d].id;
+            data.push.apply(data, currentData);
 
-          if ($.inArray(id, val) === -1) {
-            val.push(id);
-          }
-        }
+            for (var d = 0; d < data.length; d++) {
+                var id = data[d].id;
 
-        self.$element.val(val);
-        self.$element.trigger('change');
-      });
+                if ($.inArray(id, val) === -1) {
+                    val.push(id);
+                }
+            }
+  
+            self.$element.val(val);                      
+            self.$element.trigger('change');
+        });
     } else {
-      var val = data.id;
+        var val = data.id;
 
-      this.$element.val(val);
-      this.$element.trigger('change');
+        this.$element.val(val);
+        this.$element.trigger('change');
     }
   };
 
