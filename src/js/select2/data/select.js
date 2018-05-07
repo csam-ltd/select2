@@ -34,7 +34,10 @@ define([
   SelectAdapter.prototype.select = function (data) {
     var self = this;
     //Don't allow the tag to be selected if it is inactive
-    if (Utils.isInactiveTag(data.text,self)) return;
+    if (Utils.isInactiveTag(data.text,self)) return;              
+    data.selected = true;
+    // Run the filter event, this filters the data from another combo based on what was chosen in this combo
+    if (self.options.options.filterLink) self.options.options.filterLink(data, self.$element[0].id);
     
     data.selected = true;
     //Check the options to see if the system was meant to be single selection

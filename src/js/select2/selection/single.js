@@ -53,7 +53,7 @@ define([
     });
 
     this.$selection.on('blur', function (evt) {
-      // User exits the container
+      // Run the blur event passed into the select 2 component
       if (self.options.options.eventOnBlur) self.options.options.eventOnBlur(evt, componentId);
     });
 
