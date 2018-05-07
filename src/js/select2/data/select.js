@@ -33,6 +33,34 @@ define([
    */
   SelectAdapter.prototype.select = function (data) {
     var self = this;
+
+    //[CSAM]
+    //If the saved filter functionality has been activated
+    if(this.options.get("savedFilter")){
+      //Get the selection container for the select2 component
+      var selectionContainer = self.container.$selection[0];
+      //Check to see if the clear button exists currently
+      var existingBtn = selectionContainer.querySelector(".select2-clear-button");
+
+      //If it exists we don't want to add it again
+      if(!existingBtn){
+          //Create a span element for the button
+          var btnClear = document.createElement("span");
+          //Add a class for styling
+          btnClear.classList.add("select2-clear-button");
+          btnClear.innerText = "Clear";
+
+          //Add it before the tag selection
+          selectionContainer.insertBefore(btnClear,selectionContainer.children[0]);
+          //We need it to be displayed using flexbox
+          selectionContainer.style.display = 'flex';
+          //Add the unselect all function as an on click event handler
+          btnClear.addEventListener('click',function(){
+              self.unselectAll();
+          });
+      }
+    }
+
     //Don't allow the tag to be selected if it is inactive
     if (Utils.isInactiveTag(data.text,self)) return;              
     data.selected = true;
@@ -52,7 +80,7 @@ define([
         data.element.selected = true;
         this.$element.trigger('change');
 
-        //JB We need to show the blinking cursor so that the user can see what they are typing
+        //[CSAM] We need to show the blinking cursor so that the user can see what they are typing
         Utils.toggleBlinkingCursorVisibility(self,false);
         return;
     }
@@ -97,6 +125,20 @@ define([
 
       if (!this.$element.prop('multiple')) {
           return;
+      }
+
+      //[CSAM]
+      //Need to remove the clear button if there are no selected tags left
+      if(this.options.get("savedFilter")){                    
+        //Get all the currently selected items from the dropdown
+        var selectedItems = self.container.$selection[0]
+            .querySelectorAll("ul.select2-selection__rendered li.select2-selection__choice");
+        //If there is one left it will be delete so we need to remove the clear button
+        if(selectedItems.length < 2){
+            //Remove the clear button from the selection container
+            self.container.$selection[0]
+                .removeChild(document.getElementsByClassName("select2-clear-button")[0]);
+        }     
       }
 
       data.selected = false;

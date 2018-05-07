@@ -91,6 +91,27 @@ define([
         if (searchText &&
             searchText[0] &&
             searchText[0].text === item.text) existMatchFound = true;
+        
+        //[CSAM]
+        //if the item is a saved search
+        if (item.Type === 5){
+
+          //Find all the the possible options in the dropdown list
+          var options = $option.querySelectorAll("li.select2-results__option");
+
+          for(let i=0; i < item.children.length; i++){
+              //Find each data element which consists of metadata about each option
+              var dataChild = item.children[i];
+              if(!dataChild) continue;
+              
+              //Stamp the saved search unique identifier to the dataset
+              var saveSearchData = self.stampUniqueSavedSearchId(dataChild.JsonCriteria,dataChild.SavedSearchId);
+              //Add the data to the saved search data attr
+              options[i].setAttribute("saved-search-data",saveSearchData);
+
+          }
+
+        }
 
         $options.push($option);
     }
@@ -101,11 +122,47 @@ define([
 
     this.$results.append($options);
 
-};
+  };
+
+  /**
+   * Stamps the saved search data element with its unique id
+   */
+  Results.prototype.stampUniqueSavedSearchId = function(dataJson, id){
+
+    //Extract the obj from the Json
+    var data = JSON.parse(dataJson);
+
+    for(let i=0; i < data.length; i++){
+        data[i].SavedSearchId = id
+    }
+
+    //Make a json string with the result
+    return JSON.stringify(data);
+  };
+
+  /**
+   * Adds remove filter link to a saved filter result
+   * @param {$option}  
+   */
+  Results.prototype.addRemoveSavedFilterButton = function (option){
+
+    //Create the anchor tag for the button
+    var removeBtnHtml = document.createElement("a");
+    //Add a class for styling
+    removeBtnHtml.classList.add("select2-savedFilter-remove");
+    removeBtnHtml.innerText = "Remove Filter";
+
+    //Access the match container that contains the result match
+    var matchContainer =  option.querySelector(".match-container");
+    //Add the remove button to the match container
+    matchContainer.append(removeBtnHtml);
+    //We need to be display flex box 
+    matchContainer.classList.add("row-flex");
+  };
 
   //TODO Need to only do this is the new functionality
   /**
-   * jb
+   * [CSAM]
    * Adds a result which asks the user if they want to create
    * a not currently existing item
    */
@@ -137,7 +194,7 @@ define([
     queryResult.innerText = "";
     //Update the html of the element
     queryResult.append(self.createResultElement(queryResultText));
-  }
+  };
 
   /**
    * Generates the user create option html
@@ -150,7 +207,7 @@ define([
     //Create an attribute to identify this component as a user created result
     spanElement.setAttribute("addNewItemResult", "true");
     return spanElement;
-  }
+  };
 
   Results.prototype.position = function ($results, $dropdown) {
     var $resultsContainer = $dropdown.find('.select2-results');
@@ -285,6 +342,12 @@ define([
         var child = data.children[c];
 
         var $child = this.option(child);
+
+        //[CSAM]
+        //If this element belongs to the saved search group
+        if(this.options.get("savedFilter") && data.Type === 5)
+        //We need to allow the user to remove it
+        this.addRemoveSavedFilterButton($child);
 
         $children.push($child);
       }
@@ -506,6 +569,47 @@ define([
 
     this.$results.on('mouseup', '.select2-results__option[aria-selected]',
       function (evt) {
+
+      //[C-SAM]
+        //If the user has clicked on the rmeove filter button
+      if(self.options.get("savedFilter") && evt.target.classList.contains("select2-savedFilter-remove")) {
+          //Stop default behaviour
+          evt.preventDefault();
+          //If the remove function has been passed
+          var removeFunction = self.options.get("removeFilterClick");
+          //Call the function
+          if(removeFunction) removeFunction(evt);
+          //We don't want to run the normal behaviour so leave now
+          return;
+      }
+
+      //If the saved filter setting is on
+      if(self.options.get("savedFilter") && self.options.get("addTagsFunc")){
+          
+          var jsonObj = undefined, element = undefined;
+
+          //If the clicked element has saved search data
+          if(evt.target.hasAttribute("saved-search-data")){
+              jsonObj = evt.target.getAttribute("saved-search-data");
+              element = evt.target;
+          }
+
+          //The user can somethimes click on the child of the li element so check that too
+          if(evt.target.parentElement.hasAttribute("saved-search-data")){
+              jsonObj = evt.target.parentElement.getAttribute("saved-search-data");
+              element = evt.target.parentElement;
+          }
+
+          //If the object was present in one of the above elements 
+          if(jsonObj) { 
+              //Update tags method                      
+              var updateTags = self.options.get("addTagsFunc");
+              //Add the tag to the select 2 component
+              updateTags(JSON.parse(jsonObj),element);
+          }
+          
+      }
+
       var $this = $(this);
 
       var data = $this.data('data');
