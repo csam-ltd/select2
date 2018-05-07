@@ -319,30 +319,6 @@ var inactiveTagCache = [];
   }
 
   /**
-   * Hide or show the visibility of the component
-   */
-  Utils.toggleBlinkingCursorVisibility = function (self, isVisible) {
-    if(!self)return;
-
-    //This is cached search field from the select 2 component
-    var searchInput = Utils.getSearchInput(self);
-    if (!searchInput) return;
-
-    //What state is the cursor currently in
-    var currentVisible = !searchInput.classList.contains("hide-blinking-cursor");
-    if(isVisible){
-        //Cursor needs to be show remove the class that hides it
-        if(currentVisible) return;
-        searchInput.classList.remove("hide-blinking-cursor");
-    }
-    else{
-        //Cursor needs to be hidden add the class which hides it
-        if(! currentVisible) return;
-        searchInput.classList.add("hide-blinking-cursor");
-    }
-  }
-
-  /**
    * This returns the current search input either from the select 2 cache 
    * or from the dom
    */

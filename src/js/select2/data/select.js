@@ -79,9 +79,6 @@ define([
     if ($(data.element).is('option')) {                   
         data.element.selected = true;
         this.$element.trigger('change');
-
-        //[CSAM] We need to show the blinking cursor so that the user can see what they are typing
-        Utils.toggleBlinkingCursorVisibility(self,false);
         return;
     }
 
