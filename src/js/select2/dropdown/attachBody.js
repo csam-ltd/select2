@@ -213,6 +213,11 @@ define([
   };
 
   AttachBody.prototype._showDropdown = function (decorated) {
+
+    //[CSAM]
+    //If there are more than one containers in the DOM at runtime we should not be adding another one.
+    var currentOpenContainers = document.querySelectorAll("span.select2-container.select2-container--default.select2-container--open");
+    if(currentOpenContainers.length > 0) return;
     this.$dropdownContainer.appendTo(this.$dropdownParent);
 
     this._positionDropdown();

@@ -78,6 +78,7 @@ define([
 
     //Alabetically sort the results
     data.results = this.sort(data.results);
+    //[CSAM]
     //order by the text property
     if (self.options.get("noMatchFound")) data.results = Utils.orderBy("text", data.results);
     //If an exact match has been found we don't want message saying to 
@@ -116,6 +117,7 @@ define([
         $options.push($option);
     }
 
+    //[CSAM]
     //Allows the user to add a result, if the no match found functionality is enabled
     if (self.options.get("noMatchFound") && !existMatchFound)
         self.userCreatedResult($options, self);
@@ -423,7 +425,7 @@ define([
 
       self.setClasses();
       self.ensureHighlightVisible();
-      //Remove any duplicate results that may have crept in on the last selection
+      //[CSAM]Remove any duplicate results that may have crept in on the last selection
       self.checkForDuplicateResults(self);
       //Hide the current selected item to give the user room to type
       self.toggleHiddenSelection(true);
@@ -434,7 +436,7 @@ define([
       self.$results.attr('aria-expanded', 'false');
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
-      //JB Show any content which may be hidden
+      //[CSAM] Show any content which may be hidden
       self.toggleHiddenSelection(false);
     });
 
@@ -646,6 +648,7 @@ define([
   /**
    * Checks for duplicate results in the select2 dropdown
    */
+  //[CSAM]
   Results.prototype.checkForDuplicateResults = function(self){
     //Get all the possible options from select2
     var opts = self.$element.get(0).children;

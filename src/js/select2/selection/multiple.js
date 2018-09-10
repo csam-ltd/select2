@@ -15,6 +15,7 @@ define([
 
     $selection.addClass('select2-selection--multiple');
 
+    //[CSAM]
     //Add an arrow to end of the combo if the noArrow is false
     if (!self.options.options.noArrow) {
         $selection.html(
@@ -38,6 +39,7 @@ define([
     MultipleSelection.__super__.bind.apply(this, arguments);
 
     this.$selection.on('click', function (evt) {
+       //[CSAM]
        /*This is the search box which holds all the tags 
         and what the user has search for */
         var searchBox = self.$search.get(0);
@@ -53,11 +55,13 @@ define([
     });
 
   this.$search.on('focus', function (evt) {
+      //[CSAM]
       // User focuses on the container
       if (self.options.options.eventOnFocus)self.options.options.eventOnFocus(evt, componentId);
   });
 
   this.$search.on('blur', function (evt) {
+      //[CSAM]
       // User exits the container
       if (self.options.options.eventOnBlur)self.options.options.eventOnBlur(evt, componentId);
   });
@@ -111,6 +115,7 @@ define([
   * Non tag selection container for use in single 
   * @returns {} 
   */
+ //[CSAM]
   MultipleSelection.prototype.nonTagSelectionContainer = function () {
 
     var $container = $(
@@ -136,7 +141,7 @@ define([
       var selection = data[d];
       var $selection;
 
-      //JB If the no match found flag is activated
+      //[CSAM] If the no match found flag is activated
       if (self.options.options.noMatchFound &&
         //If the system is not in multple mode
         !self.options.options.multipleOrg) {
@@ -160,6 +165,7 @@ define([
     var $rendered = this.$selection.find('.select2-selection__rendered');
 
     Utils.appendMany($rendered, $selections);
+    //[CSAM]
     //Close the dialogue at the end of the selection
     Utils.closeDialogueMessage(self);
   };

@@ -721,7 +721,7 @@ define([
             message: 'activeEntityWarning',
             args: userMsg
         });
-    }
+    };
         
 }
 

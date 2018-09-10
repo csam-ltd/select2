@@ -48,11 +48,13 @@ define([
     });
 
     this.$selection.on('focus', function (evt) {
+      //[CSAM]
       // User focuses on the container
       if (self.options.options.eventOnFocus) self.options.options.eventOnFocus(evt, componentId);
     });
 
     this.$selection.on('blur', function (evt) {
+      //[CSAM]
       // Run the blur event passed into the select 2 component
       if (self.options.options.eventOnBlur) self.options.options.eventOnBlur(evt, componentId);
     });

@@ -319,18 +319,6 @@ var inactiveTagCache = [];
   }
 
   /**
-   * This returns the current search input either from the select 2 cache 
-   * or from the dom
-   */
-  Utils.getSearchInput = function(self){
-      //If can be found in $search
-      if(self.hasOwnProperty("$search")) return self.$search.get(0);
-      //Retrieve from the current dom
-      if(self.hasOwnProperty("data")) return self.data.container.selection.$search.get(0);
-      return undefined;
-  }
-
-  /**
   * This closes any message windows which may be open at a given time
   * @returns {} 
   */

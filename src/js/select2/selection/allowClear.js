@@ -60,6 +60,7 @@ define([
       }
     }
 
+    //[CSAM]
     if (this.placeholder && this.placeholder.id) this.$element.val(this.placeholder.id).trigger('change');
 
     this.trigger('toggle', {});
